@@ -34,3 +34,45 @@ if ($method == "DELETE" && isset($_GET["delete_store"])) {
     echo json_encode(["success" => true]);
     exit;
 }
+if ($method == "GET" && isset($_GET["store_items"])) {
+    $store_id = $_GET["store_items"];
+
+    $result = $conn->query("SELECT * FROM items WHERE store_id=$store_id");
+
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+
+    echo json_encode($items);
+    exit;
+}
+if ($method == "POST" && isset($_GET["add_item"])) {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $stmt = $conn->prepare("INSERT INTO items (store_id, name, quantity) VALUES (?, ?, ?)");
+    $stmt->bind_param("isi", $data["store_id"], $data["name"], $data["quantity"]);
+    $stmt->execute();
+
+    echo json_encode(["success" => true]);
+    exit;
+}
+if ($method == "DELETE" && isset($_GET["delete_item"])) {
+    $id = $_GET["delete_item"];
+
+    $conn->query("DELETE FROM items WHERE id=$id");
+
+    echo json_encode(["success" => true]);
+    exit;
+}
+if ($method == "PUT" && isset($_GET["update_item"])) {
+    $id = $_GET["update_item"];
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $stmt = $conn->prepare("UPDATE items SET name=?, quantity=?, checked=? WHERE id=?");
+    $stmt->bind_param("siii", $data["name"], $data["quantity"], $data["checked"], $id);
+    $stmt->execute();
+
+    echo json_encode(["success" => true]);
+    exit;
+}

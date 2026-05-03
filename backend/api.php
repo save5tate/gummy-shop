@@ -1,10 +1,23 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
 require "db.php";
 
 $method = $_SERVER["REQUEST_METHOD"];
+
+// Handle OPTIONS requests
+if ($method == "OPTIONS") {
+    exit;
+}
+
+/* =========================
+   STORES
+========================= */
+
+// GET all stores
 if ($method == "GET" && isset($_GET["stores"])) {
     $result = $conn->query("SELECT * FROM stores");
     $stores = [];
@@ -16,6 +29,8 @@ if ($method == "GET" && isset($_GET["stores"])) {
     echo json_encode($stores);
     exit;
 }
+
+// ADD store
 if ($method == "POST" && isset($_GET["add_store"])) {
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -26,20 +41,23 @@ if ($method == "POST" && isset($_GET["add_store"])) {
     echo json_encode(["success" => true]);
     exit;
 }
+
+// DELETE store
 if ($method == "DELETE" && isset($_GET["delete_store"])) {
-    $id = $_GET["delete_store"];
+    $id = intval($_GET["delete_store"]);
 
     $conn->query("DELETE FROM stores WHERE id=$id");
 
     echo json_encode(["success" => true]);
     exit;
 }
+
 if ($method == "GET" && isset($_GET["store_items"])) {
-    $store_id = $_GET["store_items"];
+    $store_id = intval($_GET["store_items"]);
 
     $result = $conn->query("SELECT * FROM items WHERE store_id=$store_id");
-
     $items = [];
+
     while ($row = $result->fetch_assoc()) {
         $items[] = $row;
     }
@@ -58,7 +76,7 @@ if ($method == "POST" && isset($_GET["add_item"])) {
     exit;
 }
 if ($method == "DELETE" && isset($_GET["delete_item"])) {
-    $id = $_GET["delete_item"];
+    $id = intval($_GET["delete_item"]);
 
     $conn->query("DELETE FROM items WHERE id=$id");
 
@@ -66,7 +84,7 @@ if ($method == "DELETE" && isset($_GET["delete_item"])) {
     exit;
 }
 if ($method == "PUT" && isset($_GET["update_item"])) {
-    $id = $_GET["update_item"];
+    $id = intval($_GET["update_item"]);
     $data = json_decode(file_get_contents("php://input"), true);
 
     $stmt = $conn->prepare("UPDATE items SET name=?, quantity=?, checked=? WHERE id=?");
@@ -76,3 +94,4 @@ if ($method == "PUT" && isset($_GET["update_item"])) {
     echo json_encode(["success" => true]);
     exit;
 }
+?>
